@@ -68,8 +68,6 @@ class environment:
         elif player_loc.y>29:
             new_action = 2
             edge_of_the_world = True
-        # if edge_of_the_world:
-        #     print('player is at the edge of the world')
         return edge_of_the_world, new_action
 
     def check_turn(self, player_loc, dir):
@@ -79,24 +77,24 @@ class environment:
     # check whether the target is within the sight of the agent
     # 3 conditions
     # within 45 deg of the direction the agent is facing
-    # within 10 units of target ----- WHAT??
+    # within 10 units of target
     # no buildings are in the way
-    def check_sight(self, agent, target, type, agent_prev_pos=0, action=100):
+    def check_sight(self, agent, target, type, agent_prev_pos=0, action=100, field_of_view=np.pi/4):
         # works for simulatied position/actions (type='sim') and real data (type='data')
         # action: set for 'sim' tells you the direction the player is facing
         # agent_prev_pos: set for 'data', needed to get the direction the player is facing
+        # field_of_view defines how far in each direction the agent can see
 
         agent_pos = copy.deepcopy(agent)
         target_pos = copy.deepcopy(target)
 
-
         if type=='sim':
             if action == 0:
-                vec_agent_facing = [0,-1]
-            elif action == 1:
-                vec_agent_facing = [-1,0]
-            elif action == 2:
                 vec_agent_facing = [0,1]
+            elif action == 1:
+                vec_agent_facing = [1,0]
+            elif action == 2:
+                vec_agent_facing = [0,-1]
             elif action == 3:
                 vec_agent_facing = [-1,0]
 
@@ -107,26 +105,22 @@ class environment:
             target_pos.y += .5
         else:
             vec_agent_facing = [agent_pos.x-agent_prev_pos.y, agent_pos.y-agent_prev_pos.y]
-        if np.max(vec_agent_facing) > 0:
-            vec_agent_facing /= np.linalg.norm(vec_agent_facing)
-        else:
-            vec_agent_facing = [100, 100]
+            if np.max(vec_agent_facing) > 0:
+                vec_agent_facing /= np.linalg.norm(vec_agent_facing)
+            else:
+                vec_agent_facing = [100, 100]
+                return False
         vec_agent_to_target = np.array([target_pos.x-agent_pos.x,target_pos.y-agent_pos.y])
         dist_to_target = np.linalg.norm(vec_agent_to_target)
-        vec_agent_to_target_norm = vec_agent_to_target/dist_to_target
+        if dist_to_target==0:
+            return True
+        else:
+            vec_agent_to_target_norm = vec_agent_to_target/dist_to_target
 
-        # is_facing_target = False
-        # is_within_line_of_sight = False
         if_target_seen = False
-        # is_path_on_building = False
-
         dotproduct = vec_agent_facing[0]*vec_agent_to_target_norm[0] + vec_agent_facing[1]*vec_agent_to_target_norm[1]
-        if dotproduct < (np.cos(np.pi/4)):  # Can see 45 degrees right and left
-            # is_facing_target = True
-
+        if dotproduct > (np.cos(field_of_view)):  # Can see 45 degrees right and left
             if dist_to_target < 10: # line_of_sight = 10
-
-                # is_within_line_of_sight = True
                 if_target_seen = True
                 num_tests = 50.0
 
@@ -153,7 +147,6 @@ class environment:
                             y_ind = 0
                         if (self.building_array[x_ind,y_ind]==1):
                             is_path_on_building = True
-
                     prev_position = new_position
                     i += 1
             else:
@@ -165,7 +158,6 @@ class environment:
             return True
         else:
             return False
-
 
     def populate_building_array(self, env):
 
