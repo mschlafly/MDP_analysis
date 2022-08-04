@@ -196,7 +196,8 @@ class trial_data:
                     dist_adversary_moved = np.linalg.norm([adv.pos.x-self.adv_prev_position[adv_num].x,adv.pos.y-self.adv_prev_position[adv_num].y])
                     dist_adv_to_player = np.linalg.norm([self.adv_prev_position_5sec[adv_num].x-self.state.player.x,self.adv_prev_position_5sec[adv_num].y-self.state.player.y])
                     dist_adv_to_player_prev = np.linalg.norm([adv.pos.x-self.state.player.x,adv.pos.y-self.state.player.y])
-                    if (dist_adversary_moved > 5) or (dist_adv_to_player>dist_adv_to_player_prev+1):
+                    # if (dist_adversary_moved > 5) or (dist_adv_to_player>dist_adv_to_player_prev+1):
+                    if (dist_adversary_moved > 5):# or (dist_adv_to_player>dist_adv_to_player_prev+1):
                     # the player can go over 2 blocks in 5sec
                         if self.print:
                             print('\nAdversary '+str(adv_num)+' stops chasing the player.')

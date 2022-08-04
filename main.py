@@ -6,21 +6,24 @@ import copy
 import matplotlib.pyplot as plt
 import csv
 import numpy as np
-
+import time
 
 ###############################################################################
 # Parameters
 ###############################################################################
 
+# for pomdps, if the player sees the agent, account for the
+# chance it is not an adversary
+
 minsub = 1
 maxsub = 42
-MDP_simulations = 15000
-MDP_simulations = 100
+# 2a -- 1000simulations
 # 4a -- 4000simulations
-MDP_simulations = 4000
-# MDP_simulations = 1000
+# 6a -- 20000simulations
+# MDP_simulations = 4000
+MDP_simulations = 20000
 POMDP = False
-
+include_treasure = False
 
 ###############################################################################
 # Set up csv files
@@ -45,7 +48,8 @@ columns = ['Subject', 'Control', 'Complexity']
 ###############################################################################
 
 # Specify specific subjects to skip here.
-skipped_subjects = []
+# incomplete subjects and novices
+skipped_subjects = [2, 3, 4, 5, 6, 7, 10, 12, 16, 23, 30, 31, 33, 38, 39, 42]
 
 environments = ['low', 'high']
 control = ['none', 'waypoint',
@@ -69,21 +73,26 @@ for sub in range(minsub, maxsub+1):
     for i in range(len(skipped_subjects)):
         if sub == skipped_subjects[i]:
             found = True
+            continue
     if found is False:
         if sub < 10:
             subID = '0' + str(sub)
         else:
             subID = str(sub)
+    else:
+        continue
 
     # Loop through trials
     for env in range(0, len(environments)):
         for con in range(0, len(control)):
+            # if sub==9 and con==0 and env==0:
+            #     continue
+
             trialInfo = subID + '_' + control[con] + '_' + environments[env]
             print(trialInfo)
 
             # Initialize data object
             data = trial_data(readDataDIR,sub,con,env,print=False)
-
             if data.data_error:
                 print('Data was unable to be imported correctly')
                 row = [subID, control[con], environments[env]]
@@ -91,7 +100,8 @@ for sub in range(minsub, maxsub+1):
                     writer = csv.writer(csvfile, delimiter=',')
                     writer.writerow(row)
             else:
-
+                if not include_treasure:
+                    data.state.include_treasure = False
                 # Set initial parameters for looping through trials
                 trial_running = True
                 trial_time = 0
@@ -109,6 +119,7 @@ for sub in range(minsub, maxsub+1):
                     current_state.partially_observable = True
                     current_state.update_state_with_observations(observations)
 
+                t_start = time.time()
                 # Loop through the intersections in a trial
                 while trial_running:
 
@@ -129,11 +140,12 @@ for sub in range(minsub, maxsub+1):
 
 
                     # Commented print outs
+                    # # print(current_state.adversaries[0].is_chasing)
                     # print('Action Costs: '+str(next_action_reward),np.sum(next_action_reward))
                     # # print('Action Costs #2 : ', MDP_i.values[:16,1])
                     # print('Regret: '+str(best_action_reward-player_action_reward))
                     # plot_MDP_in_environment(MDP_i, 50)
-                    # if i % 2==0:
+                    # if i % 4==0:
                     #     plt.show()
 
 
@@ -143,7 +155,8 @@ for sub in range(minsub, maxsub+1):
                             break
                     if trial_time>60*5-30:
                         break
-                    # print('Next Intersection at '+str(trial_time)+' sec')
+                    print('Next Intersection at '+str(trial_time)+' sec')
+                    print(time.time()-t_start)
                     if POMDP:
                         current_state.player = copy.deepcopy(data.state.player)
                         current_state.treasure = copy.deepcopy(data.state.treasure)

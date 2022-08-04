@@ -140,10 +140,10 @@ def plot_MDP_in_environment(MDP, num_sims):
         x_pos = int(np.floor(adv.pos.x/2))
         y_pos = int(np.floor(adv.pos.y/2))
         if adv.is_chasing:
-            adv_color_chasing[3] = get_transparency_adversary(MDP.state_init.game_time_data-adv.time_observed)
+            # adv_color_chasing[3] = get_transparency_adversary(MDP.state_init.game_time_data-adv.time_observed)
             grid[y_pos,x_pos,:] = adv_color_chasing
         else:
-            adv_color[3] = get_transparency_adversary(MDP.state_init.game_time_data-adv.time_observed)
+            # adv_color[3] = get_transparency_adversary(MDP.state_init.game_time_data-adv.time_observed)
             grid[y_pos,x_pos,:] = adv_color
 
     treasure = MDP.state_init.treasure

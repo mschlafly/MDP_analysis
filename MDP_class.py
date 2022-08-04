@@ -15,7 +15,7 @@ class MDP:
         # check is the function that determines whether a state-action pair is possible
 
         # define the set of states
-        self.a = 4 # number of intersections (or time instances) to simulate forward
+        self.a = 6 # number of intersections (or time instances) to simulate forward
         self.D = 4 # number of directions possible at each intersection
         self.n_state_action_pairs = self.num_s_a_pairs(self.a-1)
         T = 1 # assume that we know for certain that an action will move one state to another
@@ -105,10 +105,10 @@ class MDP:
                 system_state = copy.deepcopy(self.state_init)
                 dist_to_treasure_prev = np.sqrt(((system_state.treasure.x - system_state.player.x)**2) + ((system_state.treasure.y - system_state.player.y)**2))
                 include_treasure = system_state.include_treasure
-            elif a_i==1:
-                for adv in system_state.adversaries:
-                    adv.caught_player = 0
-                sim_result[1,a_i] = 0
+            # elif a_i==1:
+            #     for adv in system_state.adversaries:
+            #         adv.caught_player = 0
+            #     sim_result[1,a_i] = 0
             lost_lives, dist_to_treasure, found_treasure = system_state.simulate(action)
 
             # Update reward and N
