@@ -27,8 +27,8 @@ class state:
 
         self.player_rate = 4
         self.adv_rate = 3
-        self.time_include_adv = 12.6
         self.adversary_moving_rate = (1/.42) # seconds per block
+        self.time_include_adv = self.adversary_moving_rate * 10
 
     # This function simulates the game for a particular player action until the
     # player has reached the next intersection
@@ -105,11 +105,11 @@ class state:
                         if adv.include:
                             isfound = self.environment.check_sight(self.player, adv.pos, 'sim', action=action, field_of_view=np.pi/1.5)
                             if isfound:
-                                if adv.adversarial:
-                                    adv.probability_observed = 1
-                                    adv.time_observed = adv.sim_time
-                                else:
-                                    adv.include = False
+                                # if adv.adversarial:
+                                adv.probability_observed = 1
+                                adv.time_observed = adv.sim_time
+                                # else:
+                                #     adv.include = False
 
                 # Did the player catch the treasure?
                 isfound, dist_to_treasure = self.is_treasure_found()
@@ -224,7 +224,7 @@ class adversary_state:
         self.include = True
 
         # POMDP parameters
-        self.adversarial = adversarial
+        # self.adversarial = adversarial
         self.include_probability = include_probability
         self.time_observed = time_observed
         self.sim_time = time_observed

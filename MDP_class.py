@@ -10,12 +10,12 @@ import time
 class MDP:
 
     # Initilize the size of the tree
-    def __init__(self,state_init):
+    def __init__(self,state_init,num_actions,MDP_reward_model):
         # state_init is the current state and origin of the tree
         # check is the function that determines whether a state-action pair is possible
 
         # define the set of states
-        self.a = 6 # number of intersections (or time instances) to simulate forward
+        self.a = num_actions # number of intersections (or time instances) to simulate forward
         self.D = 4 # number of directions possible at each intersection
         self.n_state_action_pairs = self.num_s_a_pairs(self.a-1)
         T = 1 # assume that we know for certain that an action will move one state to another
@@ -24,6 +24,8 @@ class MDP:
         # self.MDP_tree = np.zeros((self.n_state_action_pairs,self.a))
         self.values = np.zeros((self.n_state_action_pairs,self.a))
         self.N_sim = np.zeros((self.n_state_action_pairs,self.a))
+
+        self.MDP_reward_model = MDP_reward_model
 
     # define tree reward function
     def reward(self, lost_lives, dist_to_treasure, dist_to_treasure_prev):
@@ -210,7 +212,8 @@ class MDP:
                 # Take the maximum of the values of the child nodes
                 row,col = self.node_child(i,a_i,0)
                 values = self.values[row:row+self.D,col]
-                shuffle(values) # to prevent bias
-                self.values[i,a_i] = np.amax(values)
-                # self.values[i,a_i] = np.mean(values)
+                if self.MDP_reward_model=='max':
+                    self.values[i,a_i] = np.amax(values)
+                elif self.MDP_reward_model=='mean':
+                    self.values[i,a_i] = np.mean(values)
         return True
