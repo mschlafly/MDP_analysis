@@ -15,18 +15,19 @@ import time
 # for pomdps, if the player sees the agent, account for the
 # chance it is not an adversary
 
-minsub = 15
-maxsub = 22
+minsub = 30
+maxsub = 42
 num_actions = 3
 # 2a -- 1000simulations
+# 3a -- 2000simulations
 # 4a -- 4000simulations
 # 6a -- 20000simulations
 # MDP_simulations = 4000
+# MDP_simulations = 20000
 MDP_simulations = 2000
-# MDP_simulations = 2000
 POMDP = True
 POMDP_seperate_observations = True
-include_treasure = False
+include_treasure = True
 
 MDP_reward_model = 'max'
 if POMDP:
@@ -46,9 +47,10 @@ columns = ['Subject', 'Control', 'Complexity', 'Regret_cum']
 if POMDP:
     file = "raw_data/raw_data_POMDP.csv"
     columns = ['Subject', 'Control', 'Complexity','N_obs',
-                'Regret_mean', 'Regret_perc_mean','norm_mean',
-                'norm_cum','Regret_list','norm_list']
-
+                'norm_mean', 'norm_cum',
+                'Reg_mean0', 'Reg_perc0','Reg_mean1', 'Reg_perc1',
+                'Reg_mean2', 'Reg_perc2','Reg_mean3', 'Reg_perc3',
+                'Regret_list','norm_list']
     # create_csv(file, columns)
 
 file_missingbags = "raw_data/unparsable_bags_playback.csv"
@@ -95,12 +97,22 @@ for sub in range(minsub, maxsub+1):
     else:
         continue
 
+    # if sub>14 and sub<23:
+    #     continue
+
+    # if sub>22 and sub<30:
+    #     continue
+
     # Loop through trials
     for env in range(0, len(environments)):
-        for con in range(0, len(control)):
+        for con in range(1, len(control)):
 
             trialInfo = subID + '_' + control[con] + '_' + environments[env]
             print(trialInfo)
+
+            if sub==32 and env==0:
+                if con==0 or con==1:
+                    continue
 
             # Initialize data object
             data = trial_data(readDataDIR,sub,con,env,print=False)
@@ -120,7 +132,11 @@ for sub in range(minsub, maxsub+1):
                 intersection_t = []
                 regret = []
                 if POMDP:
-                    regret_percent = []
+                    regret_lists = []
+                    regret_percent_lists = []
+                    for i in range(4):
+                        regret_lists.append([])
+                        regret_percent_lists.append([])
                     n_observations = 0
                     # kl_obs = []
                     norm_obs = []
@@ -182,9 +198,23 @@ for sub in range(minsub, maxsub+1):
                                     n_observations += 1
                                     break
 
-                        if max_regret_possible > 1 and max_regret_possible < 2:
-                            regret.append(regret_i)
-                            regret_percent.append(regret_i/max_regret_possible)
+                        # if max_regret_possible > 1 and max_regret_possible < 2:
+                        #     regret.append(regret_i)
+                        #     regret_percent.append(regret_i/max_regret_possible)
+
+                        regret.append(regret_i)
+                        if max_regret_possible >= .1 and max_regret_possible < .5:
+                            regret_lists[0].append(regret_i)
+                            regret_percent_lists[0].append(regret_i/max_regret_possible)
+                        elif max_regret_possible >= .5 and max_regret_possible < 1:
+                            regret_lists[1].append(regret_i)
+                            regret_percent_lists[1].append(regret_i/max_regret_possible)
+                        elif max_regret_possible >= 1 and max_regret_possible < 2:
+                            regret_lists[2].append(regret_i)
+                            regret_percent_lists[2].append(regret_i/max_regret_possible)
+                        elif max_regret_possible >= 2:
+                            regret_lists[3].append(regret_i)
+                            regret_percent_lists[3].append(regret_i/max_regret_possible)
                     else:
                         regret.append(regret_i)
 
@@ -205,27 +235,34 @@ for sub in range(minsub, maxsub+1):
                     if POMDP:
                         print(regret)
                         print(norm_obs)
-                        print(len(norm_obs))
                     else:
                         print(regret)
                     print('Took '+str((time.time()-t_start)/60)+' min')
                     if POMDP:
-                        if len(regret)<1:
-                            regret_mean = np.nan
-                            regret_percent = np.nan
-                        else:
-                            regret_mean = np.mean(regret)
-                            regret_percent = np.mean(regret_percent)
+                        regret_mean = np.zeros(4)
+                        regret_percent = np.zeros(4)
+                        for i in range(4):
+                            if len(regret_lists[i])<1:
+                                regret_mean[i] = np.nan
+                                regret_percent[i] = np.nan
+                            else:
+                                regret_mean[i] = np.mean(regret_lists[i])
+                                regret_percent[i] = np.mean(regret_percent_lists[i])
                         if len(norm_obs)<1:
                             # kl_mean = np.nan
                             norm_mean = np.nan
                         else:
                             # kl_mean = np.mean(kl_obs)
                             norm_mean = np.mean(norm_obs)
-
+                            columns = ['Subject', 'Control', 'Complexity','N_obs',
+                                        'norm_mean', 'norm_cum',
+                                        'Reg_mean0', 'Reg_perc0','Reg_mean1', 'Reg_perc1',
+                                        'Reg_mean2', 'Reg_perc2','Reg_mean3', 'Reg_perc3',
+                                        'Regret_list','norm_list']
                         row = [subID, control[con], environments[env], n_observations,
-                              regret_mean, regret_percent, norm_mean,
-                              norm_obs_cum, regret, norm_obs]
+                              norm_mean, norm_obs_cum, regret_mean[0], regret_percent[0],
+                              regret_mean[1], regret_percent[1],regret_mean[2], regret_percent[2],
+                              regret_mean[3], regret_percent[3], regret, norm_obs]
                     else:
                         row = [subID, control[con], environments[env],
                                np.sum(regret)]
