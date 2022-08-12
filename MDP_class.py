@@ -42,7 +42,7 @@ class MDP:
         return self.D**(col+1)
 
     def populate_tree_parallelized(self,num_sims):
-        num_proc = 14
+        num_proc = 20
 
         # create array for storing action/reward pairs
         sim_result = np.zeros((3,self.a))
@@ -199,9 +199,9 @@ class MDP:
                 # if a_i==0:
                 #     self.values[i,a_i] = 0
 
-        if count_unreached/(count_reached+count_unreached)>.01:
-            print('\n\n\n MAY NOT HAVE ENOUGH SIMULATIONS')
-            print(count_unreached/(count_reached+count_unreached))
+        # if count_unreached/(count_reached+count_unreached)>.01:
+        #     print('\n\n\n MAY NOT HAVE ENOUGH SIMULATIONS')
+        #     print(count_unreached/(count_reached+count_unreached))
         # if sum(self.values[:4,0])>0.01:
         #     # print(self.values[:4,0])
         #     return False

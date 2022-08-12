@@ -70,6 +70,18 @@ def l2_norm(new_vec,vec):
     # assume equal size
     return np.linalg.norm(new_vec-vec)
 
+def current_path_norm(r_obs,r_initial):
+    # Finds how much the expected value of the current best path changes
+    best_action_dir = np.argmax(r_initial)
+    best_action_dir_obs = np.argmax(r_obs)
+    r_initial_best = r_initial[best_action_dir]
+    r_obs = r_obs[best_action_dir]
+    current_path_impact = abs(r_obs-r_initial_best)
+    change_dir = 0
+    if best_action_dir!=best_action_dir_obs:
+        change_dir = 1
+    return current_path_impact, change_dir
+
 def infomativeness_of_observations(current_state,observations,MDP_simulations,num_actions,MDP_reward_model):
 
     # determine how many new drone observations pre-intersection
@@ -82,7 +94,7 @@ def infomativeness_of_observations(current_state,observations,MDP_simulations,nu
                 break
 
     if len(obs_include)==0:
-        return False, 0, 0
+        return False, 0, 0, 0, 0, 0
     else:
         # Obtain initial rewards
         # Fill a markov decision process and get reward for the next step
@@ -95,6 +107,8 @@ def infomativeness_of_observations(current_state,observations,MDP_simulations,nu
         obs_len = len(obs_include)
         # kl = np.zeros(obs_len)
         norm = np.zeros(obs_len)
+        norm_path = np.zeros(obs_len)
+        change_dir = np.zeros(obs_len)
         i_obs = 0
         # Iterate backwards through the observations to get most recent info
         for i in range(obs_len-1,-1,-1):
@@ -115,7 +129,7 @@ def infomativeness_of_observations(current_state,observations,MDP_simulations,nu
 
             # kl[i_obs] = kl_divergence(reward_after_observation,action_rewards_initial)
             norm[i_obs] = l2_norm(reward_after_observation,action_rewards_initial)
-
+            norm_path[i_obs], change_dir[i_obs] = current_path_norm(reward_after_observation,action_rewards_initial)
             # print('Metrics: ',norm[i_obs])
             # plot_MDP_in_environment(MDP_i, 50)
             # plt.show()
@@ -126,6 +140,7 @@ def infomativeness_of_observations(current_state,observations,MDP_simulations,nu
         if len(obs_include)==1:
             # kl_cum = kl
             norm_cum = norm[0]
+            norm_path_cum = norm_path[0]
         else:
             # How useful were all observations cummlatively
 
@@ -139,6 +154,8 @@ def infomativeness_of_observations(current_state,observations,MDP_simulations,nu
 
             # kl_cum = kl_divergence(reward_after_observation,action_rewards_initial)
             norm_cum = l2_norm(reward_after_observation,action_rewards_initial)
+            norm_path_cum, _ = current_path_norm(reward_after_observation,action_rewards_initial)
             # print('Metrics: ',norm_cum)
 
-    return True, norm, norm_cum
+    # return True, norm, norm_cum
+    return True, norm, norm_path, norm_cum, norm_path_cum, change_dir
