@@ -215,5 +215,10 @@ class MDP:
                 if self.MDP_reward_model=='max':
                     self.values[i,a_i] = np.amax(values)
                 elif self.MDP_reward_model=='mean':
-                    self.values[i,a_i] = np.mean(values)
+                    values_new_list = []
+                    for val in values:
+                        if val!=-50:
+                            values_new_list.append(val)
+                    if len(values_new_list)!=0:
+                        self.values[i,a_i] = np.mean(values_new_list)
         return True

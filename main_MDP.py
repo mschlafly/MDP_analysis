@@ -12,15 +12,15 @@ import time
 # Parameters
 ###############################################################################
 
-minsub = 37
-maxsub = 42
-num_actions = 6
-# 2a -- 1000simulations
-# 3a -- 2000simulations
-# 4a -- 4000simulations
-# 6a -- 20000simulations
-# MDP_simulations = 4000
-MDP_simulations = 20000
+# minsub = 1
+# maxsub = 42
+# num_actions = 3
+# # 2a -- 1000simulations
+# # 3a -- 2000simulations
+# # 4a -- 4000simulations
+# # 6a -- 20000simulations
+# # MDP_simulations = 4000
+# MDP_simulations = 5000
 # MDP_simulations = 2000
 include_treasure = True
 
@@ -37,12 +37,12 @@ def create_csv(filePath, columns):
         writer.writerow(columns)
 
 if loop:
-    file = "raw_data/raw_data_MDP_parameters.csv"
+    file = "raw_data/raw_data_MDP_parameters_1.csv"
     columns = ['Subject', 'Control', 'Complexity', 'Num_A', 'Num_sim', 'Regret_cum']
-    create_csv(file, columns)
+    # create_csv(file, columns)
 else:
-    file = "raw_data/raw_data_MDP.csv"
-    columns = ['Subject', 'Control', 'Complexity', 'Regret_cum']
+    file = "raw_data/raw_data_MDP_3a.csv"
+    columns = ['Subject', 'Control', 'Complexity', 'MDP_r']
     create_csv(file, columns)
 
 
@@ -92,15 +92,41 @@ while len(chosen_sub_list)<3:
             continue
     if found:
         continue
+    next_sub = 1
     print('Selected Subject '+str(next_sub)+' for analysis')
     chosen_sub_list.append(next_sub)
 
-    for num_a in range(1,7):
+    for num_a in [6,5,4,3,2,1]:
         if loop:
             num_sim_power = 0
             MDP_simulations = 1
             minsub = chosen_sub_list[-1]
             maxsub = chosen_sub_list[-1]
+        if next_sub==1 and num_a==1:
+            MDP_simulations = 1097
+            num_sim_power = np.log(MDP_simulations)
+        if next_sub==1 and num_a==3:
+            MDP_simulations = 4915
+            num_sim_power = np.log(MDP_simulations)
+            num_sim_power += .25
+            MDP_simulations = int(np.round(np.e**num_sim_power))
+        if next_sub==1 and num_a==5:
+            MDP_simulations = 245
+            num_sim_power = np.log(MDP_simulations)
+            num_sim_power += .25
+            MDP_simulations = int(np.round(np.e**num_sim_power))
+        if next_sub==29 and num_a==1:
+            MDP_simulations = 1408
+            num_sim_power = np.log(MDP_simulations)
+        if next_sub==29 and num_a==2:
+            MDP_simulations = 2981
+            num_sim_power = np.log(MDP_simulations)
+            num_sim_power += .25
+            MDP_simulations = int(np.round(np.e**num_sim_power))
+        if next_sub==29 and num_a==4:
+            MDP_simulations = 2981
+            num_sim_power = np.log(MDP_simulations)
+
         while MDP_simulations < 30000:
 
             for sub in range(minsub, maxsub+1):
@@ -122,7 +148,11 @@ while len(chosen_sub_list)<3:
                 # for env in range(0, 1):
                     for con in range(0, len(control)):
                     # for con in range(0, 1):
-
+                        # if MDP_simulations == 3828:
+                        #     if env==0 and con==0:
+                        #         continue
+                        #     if env==0 and con==1:
+                        #         continue
                         trialInfo = subID + '_' + control[con] + '_' + environments[env]
                         print(trialInfo)
 
@@ -154,7 +184,10 @@ while len(chosen_sub_list)<3:
                             while trial_running:
 
                                 # Fill a markov decision process and get reward for the next step
-                                next_action_reward, MDP_i = run_MDP(current_state,MDP_simulations,num_actions,MDP_reward_model)
+                                if loop:
+                                    next_action_reward, MDP_i = run_MDP(current_state,MDP_simulations,num_a,MDP_reward_model)
+                                else:
+                                    next_action_reward, MDP_i = run_MDP(current_state,MDP_simulations,num_actions,MDP_reward_model)
 
                                 # Simulate trial data forward until the player reaches an intersection
                                 trial_time, player_action, observations = data.update_data_state(trial_time)
