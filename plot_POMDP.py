@@ -63,5 +63,11 @@ for con in range(0, len(control)):
     ax.plot(decision_impact,r_mean,linestyle='-',color=colors5[con])
     ax.fill_between(decision_impact,np.add(r_mean,r_std),y2=np.subtract(r_mean,r_std),
             alpha=0.5,color=colors5[con],linewidth=0.0)
+    fig.title('Decision Quality As Decision Impact Increases')
+    plt.xlabel('Potential Loss in Reward')
+    plt.ylabel('Percent Regret')
+    plt.legend(control)
+    fig.savefig('Plots/POMDP/impact_levels.pdf')
+    fig.savefig('Plots/MDP_param_setting/impact_levels.png')
 
 plt.show()

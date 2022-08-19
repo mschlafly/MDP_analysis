@@ -20,10 +20,10 @@ num_actions = 3
 # 4a -- 4000simulations
 # 6a -- 20000simulations
 # num_sims = 4000
-num_sims = 5000
+num_sims = 2000
 # num_sims = 2000
-POMDP_d = True
-POMDP_obs = False
+POMDP_d = False
+POMDP_obs = True
 include_treasure = True
 
 MDP_reward_model = 'mean'
@@ -38,7 +38,7 @@ def create_csv(filePath, columns):
         writer.writerow(columns)
 
 if POMDP_d:
-    file_POMDP_d = "raw_data/raw_data_POMDP_d_"+str(num_actions)+'a_'+str(num_actions)+'s.csv'
+    file_POMDP_d = "raw_data/raw_data_POMDP_d_"+str(num_actions)+'a_'+str(num_sims)+'s.csv'
     columns = ['Subject', 'Control', 'Complexity','Intersection_time','Regret','Maximum_Regret']
 
     # 'N_obs',
@@ -47,8 +47,15 @@ if POMDP_d:
     #             'Reg_mean2', 'Reg_perc2','Reg_mean3', 'Reg_perc3',
     #             'Regret_list','norm_list']
     create_csv(file_POMDP_d, columns)
-# if POMDP_obs:
-
+if POMDP_obs:
+    file_POMDP_obs_i = "raw_data/raw_data_POMDP_obs_i_"+str(num_actions)+'a_'+str(num_sims)+'s.csv'
+    file_POMDP_obs_cum = "raw_data/raw_data_POMDP_obs_cum_"+str(num_actions)+'a_'+str(num_sims)+'s.csv'
+    columns = ['Subject', 'Control', 'Complexity','Intersection_time','P_switch',
+                'norm_mean','norm_bestpath','norm_userpath']
+    create_csv(file_POMDP_obs_i, columns)
+    columns = ['Subject', 'Control', 'Complexity','Intersection_time','P_switch_cum',
+                'norm_cum','norm_bestpath_cum','norm_userpath_cum']
+    create_csv(file_POMDP_obs_cum, columns)
 
 file_missingbags = "raw_data/unparsable_bags_playback.csv"
 columns = ['Subject', 'Control', 'Complexity']
@@ -96,7 +103,12 @@ for sub in range(minsub, maxsub+1):
 
     # Loop through trials
     for env in range(0, len(environments)):
+
         for con in range(0, len(control)):
+
+            # skip if only testing the impact of drone observations
+            if POMDP_obs and (POMDP_d==False) and con==0:
+                continue
 
             trialInfo = subID + '_' + control[con] + '_' + environments[env]
             print(trialInfo)
@@ -117,22 +129,6 @@ for sub in range(minsub, maxsub+1):
                 trial_running = True
                 trial_time = 0
                 i = 0
-                # intersection_t = []
-                # regret = []
-                # if POMDP:
-                #     regret_lists = []
-                #     regret_percent_lists = []
-                #     for i in range(4):
-                #         regret_lists.append([])
-                #         regret_percent_lists.append([])
-                #     n_observations = 0
-                #     # kl_obs = []
-                #     norm_obs = []
-                #     norm_path_obs = []
-                #     change_dir_obs = []
-                #     # kl_obs_cum = 0
-                #     norm_obs_cum = 0
-                #     norm_path_obs_cum = 0
 
                 # Get initial state/observations from data
                 trial_time, player_action, observations = data.update_data_state(trial_time)
@@ -152,19 +148,11 @@ for sub in range(minsub, maxsub+1):
                 while trial_running:
 
                     if POMDP_obs and con!=0: #for none, there are no drone observations
-                        # print('observations',observations)
-                        # include_bool, norm, norm_cum = infomativeness_of_observations(current_state_no_observations,observations,num_sims,num_actions,MDP_reward_model)
-                        include_bool, norm, norm_path, norm_cum, norm_path_cum, change_dir = infomativeness_of_observations(current_state_no_observations,observations,num_sims,num_actions,MDP_reward_model)
-                        if include_bool:
-                            # print(kl)
-                            for i in range(norm.shape[0]):
-                                # kl_obs.append(kl[i])
-                                norm_obs.append(norm[i])
-                                norm_path_obs.append(norm_path[i])
-                                change_dir_obs.append(change_dir[i])
-                            # kl_obs_cum += kl_cum
-                            norm_obs_cum += norm_cum
-                            norm_path_obs_cum += norm_path_cum
+                        infomativeness_of_observations(current_state_no_observations,
+                                observations,num_sims,num_actions,MDP_reward_model,
+                                file_POMDP_obs_i,file_POMDP_obs_cum,
+                                [subID, control[con], environments[env]],copy.deepcopy(data))
+
 
                     if POMDP_d:
                         # Fill a markov decision process and get reward for the next step
@@ -178,8 +166,8 @@ for sub in range(minsub, maxsub+1):
                     if POMDP_obs:
                         # copy previous current state, but do not include new observations
                         current_state_no_observations = copy.deepcopy(current_state)
-                        continue_bool, current_state_no_observations = update_current_state_with_data(trial_time,data.state,current_state_no_observations,[],sub,POMDP_d)
-                    continue_bool, current_state = update_current_state_with_data(trial_time,data.state,current_state,observations,sub,POMDP_d)
+                        continue_bool, current_state_no_observations = update_current_state_with_data(trial_time,data.state,current_state_no_observations,[],sub,True)
+                    continue_bool, current_state = update_current_state_with_data(trial_time,data.state,current_state,observations,sub,True)
 
 
                     # Store metrics from current intersection
@@ -235,11 +223,11 @@ for sub in range(minsub, maxsub+1):
                     i += 1
 
                 if not data.data_error:
-                    if POMDP_d:
-                        print(regret)
-                        print(norm_obs)
-                    else:
-                        print(regret)
+                    # if POMDP_d:
+                    #     print(regret)
+                    #     print(norm_obs)
+                    # else:
+                    #     print(regret)
                     print('Took '+str((time.time()-t_start)/60)+' min')
                     # if POMDP:
                     #     regret_mean = np.zeros(4)

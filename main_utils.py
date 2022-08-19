@@ -3,6 +3,7 @@ import numpy as np
 import copy
 from plot_MDP import plot_MDP_in_environment
 import matplotlib.pyplot as plt
+import csv
 
 
 def run_MDP(current_state,MDP_simulations,num_player_actions,MDP_reward_model):
@@ -70,32 +71,38 @@ def l2_norm(new_vec,vec):
     # assume equal size
     return np.linalg.norm(new_vec-vec)
 
-def current_path_norm(r_obs,r_initial):
-    # Finds how much the expected value of the current best path changes
+def best_path_norm(r_obs,r_initial):
+    # Finds how much the expected value of the best path changes
     best_action_dir = np.argmax(r_initial)
     best_action_dir_obs = np.argmax(r_obs)
     r_initial_best = r_initial[best_action_dir]
     r_obs = r_obs[best_action_dir]
-    current_path_impact = abs(r_obs-r_initial_best)
+    best_path_impact = abs(r_obs-r_initial_best)
     change_dir = 0
     if best_action_dir!=best_action_dir_obs:
         change_dir = 1
-    return current_path_impact, change_dir
+    return best_path_impact, change_dir
 
-def infomativeness_of_observations(current_state,observations,MDP_simulations,num_actions,MDP_reward_model):
+def current_path_norm(r_obs,r_initial,player_action):
+    # Finds how much the expected value of the current path changes
+    r_i_player_dir = r_initial[player_action]
+    r_o_player_dir = r_obs[player_action]
+    current_path_impact = abs(r_o_player_dir-r_i_player_dir)
+    return current_path_impact
 
-    # determine how many new drone observations pre-intersection
+def infomativeness_of_observations(current_state,observations,MDP_simulations,
+    num_actions,MDP_reward_model,file_i,file_cum,row_start,data):
+
+    # Only include observations from drones
     obs_include = []
-    for id in range(6):
-        for obs in observations:
-            # Only include observations from drones
-            if obs[1]==id and obs[2]==0.5:
-                obs_include.append(obs)
-                break
+    for obs in observations:
+        if obs[2]==0.5:
+            obs_include.append(obs)
+            break
 
-    if len(obs_include)==0:
-        return False, 0, 0, 0, 0, 0
-    else:
+
+    if len(obs_include)!=0:
+
         # Obtain initial rewards
         # Fill a markov decision process and get reward for the next step
         action_rewards_initial, MDP_i = run_MDP(current_state,MDP_simulations,num_actions,MDP_reward_model)
@@ -103,44 +110,55 @@ def infomativeness_of_observations(current_state,observations,MDP_simulations,nu
         # print('Action Costs Initial: '+str(action_rewards_initial))
         # plot_MDP_in_environment(MDP_i, 50)
 
+        # Get the next action the player will take
+        trial_time_current_iter = current_state.game_time_data
+        _, player_action, _ = data.update_data_state(trial_time_current_iter)
+
         # Find relative informativeness of observations
-        obs_len = len(obs_include)
-        # kl = np.zeros(obs_len)
-        norm = np.zeros(obs_len)
-        norm_path = np.zeros(obs_len)
-        change_dir = np.zeros(obs_len)
         i_obs = 0
+
         # Iterate backwards through the observations to get most recent info
-        for i in range(obs_len-1,-1,-1):
-            obs = obs_include[i_obs]
-            # print('observation: ',obs)
+        id_found = np.zeros(6)
+        for i in range(len(obs_include)-1,-1,-1):
+            obs = obs_include[i]
+            # Has the objectid already been observed
+            if id_found[obs[1]]==0:
+                # Only include observations from drones
+                if obs[2]==0.5:
 
-            # The agent has been observed...how useful is it??
-            state_1obs = copy.deepcopy(current_state)
+                    # The agent has been observed...how useful is it??
+                    state_1obs = copy.deepcopy(current_state)
 
-            # Update State with new info for next iteration
-            state_1obs.update_state_with_observations([obs])
-            # done_bool, state_1obs = update_current_state_with_data(current_state.game_time_data,current_state,state_1obs,[obs],1,True)
+                    # Update State with new info for next iteration
+                    state_1obs.update_state_with_observations([obs])
 
-            # Fill a markov decision process and get reward for the next step
-            reward_after_observation, MDP_i = run_MDP(state_1obs,MDP_simulations,num_actions,MDP_reward_model)
+                    # Fill a markov decision process and get reward for the next step
+                    reward_after_observation, MDP_i = run_MDP(state_1obs,MDP_simulations,num_actions,MDP_reward_model)
 
-            # print('Action Costs After Observation '+str(i_obs)+': '+str(reward_after_observation))
+                    # print('Action Costs After Observation '+str(i_obs)+': '+str(reward_after_observation))
 
-            # kl[i_obs] = kl_divergence(reward_after_observation,action_rewards_initial)
-            norm[i_obs] = l2_norm(reward_after_observation,action_rewards_initial)
-            norm_path[i_obs], change_dir[i_obs] = current_path_norm(reward_after_observation,action_rewards_initial)
-            # print('Metrics: ',norm[i_obs])
-            # plot_MDP_in_environment(MDP_i, 50)
-            # plt.show()
+                    # kl[i_obs] = kl_divergence(reward_after_observation,action_rewards_initial)
+                    norm_i = l2_norm(reward_after_observation,action_rewards_initial)
+                    norm_bestpath_i, change_dir_i = best_path_norm(reward_after_observation,action_rewards_initial)
+                    norm_userpath_i = current_path_norm(reward_after_observation,action_rewards_initial,player_action)
 
-            i_obs += 1
+                    row = [trial_time_current_iter, change_dir_i, norm_i, norm_bestpath_i, norm_userpath_i]
+                    with open(file_i, 'a') as csvfile:
+                        writer = csv.writer(csvfile, delimiter=',')
+                        writer.writerow(row_start + row)
+
+                    # print('Metrics: ',norm[i_obs])
+                    # plot_MDP_in_environment(MDP_i, 50)
+                    # plt.show()
+
+                    i_obs += 1
 
         # Get cummalative benefit of observations
-        if len(obs_include)==1:
-            # kl_cum = kl
-            norm_cum = norm[0]
-            norm_path_cum = norm_path[0]
+        if i_obs==1:
+            with open(file_cum, 'a') as csvfile:
+                writer = csv.writer(csvfile, delimiter=',')
+                writer.writerow(row_start + row)
+
         else:
             # How useful were all observations cummlatively
 
@@ -152,10 +170,13 @@ def infomativeness_of_observations(current_state,observations,MDP_simulations,nu
             reward_after_observation, MDP_i = run_MDP(current_state,MDP_simulations,num_actions,MDP_reward_model)
             # print('Action Costs After All Observations: '+str(reward_after_observation))
 
-            # kl_cum = kl_divergence(reward_after_observation,action_rewards_initial)
-            norm_cum = l2_norm(reward_after_observation,action_rewards_initial)
-            norm_path_cum, _ = current_path_norm(reward_after_observation,action_rewards_initial)
-            # print('Metrics: ',norm_cum)
+            norm_i = l2_norm(reward_after_observation,action_rewards_initial)
+            norm_bestpath_i, change_dir_i = best_path_norm(reward_after_observation,action_rewards_initial)
+            norm_userpath_i = current_path_norm(reward_after_observation,action_rewards_initial,player_action)
 
-    # return True, norm, norm_cum
-    return True, norm, norm_path, norm_cum, norm_path_cum, change_dir
+            row = [trial_time_current_iter, change_dir_i, norm_i, norm_bestpath_i, norm_userpath_i]
+            with open(file_cum, 'a') as csvfile:
+                writer = csv.writer(csvfile, delimiter=',')
+                writer.writerow(row_start + row)
+
+    return True

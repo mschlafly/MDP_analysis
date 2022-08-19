@@ -1,11 +1,9 @@
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
+#Ctrl replace MDP with POMDP to plot those parameters
 
-subject_list = [8]
-subject_list = [8, 36, 40]
 subject_list = [1, 29]
 # for sub_num in range(len(subject_list)):
 for sub in subject_list:
@@ -18,7 +16,7 @@ for sub in subject_list:
                'directergodic', 'sharedergodic', 'autoergodic']
 
 # for sub in subject_list:
-    for a in range(1,7):
+    for a in range(1,9):
         plt.figure()
         df_plot = df[(df['Subject'] == sub) & (df['Num_A'] == a)]
         for con in range(0, len(control)):
@@ -42,13 +40,21 @@ for sub in subject_list:
             regret = np.zeros(6)
             i=0
             legend.append(control[con]+' '+environments[env])
-            for a in range(1,7):
+            for a in range(1,9):
                 df_plot = df[(df['Subject'] == sub) & (df['Num_A'] == a)]
                 df_line = df_plot[(df_plot['Control'] == control[con]) &
-                            (df_plot['Complexity'] == environments[env]) &
+                            (df_plot['Complexity'] == environments[env])]
                             # (df_plot['Num_sim'] == 1097)]
-                            (df_plot['Num_sim'] == 4915)]
-                val = df_line['Regret_cum'].values
+                            # (df_plot['Num_sim'] >= 4915) &  (df_plot['Num_sim'] <= 4921)]
+                            # (df_plot['Num_sim'] >= 13360) &  (df_plot['Num_sim'] <= 13377)]
+                if a<4:
+                    # df_trial =  df_line[(df_line['Num_sim'] == 8103)]
+                    df_trial =  df_line[(df_line['Num_sim'] == 4915)]
+                else:
+                    df_trial =  df_line[(df_line['Num_sim'] >= 28282) & (df_line['Num_sim'] <= 28318)]
+                # df_trial =  df_line[(df_line['Num_sim'] >= 28282) & (df_line['Num_sim'] <= 28318)]
+
+                val = df_trial['Regret_cum'].values
                 if len(val)>0:
                     regret[i] = val[0]
                 i += 1

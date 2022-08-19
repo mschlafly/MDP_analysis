@@ -96,7 +96,7 @@ while len(chosen_sub_list)<3:
     print('Selected Subject '+str(next_sub)+' for analysis')
     chosen_sub_list.append(next_sub)
 
-    for num_a in [6,5,4,3,2,1]:
+    for num_a in [8]:
         if loop:
             num_sim_power = 0
             MDP_simulations = 1
@@ -111,10 +111,8 @@ while len(chosen_sub_list)<3:
             num_sim_power += .25
             MDP_simulations = int(np.round(np.e**num_sim_power))
         if next_sub==1 and num_a==5:
-            MDP_simulations = 245
+            MDP_simulations = 17176
             num_sim_power = np.log(MDP_simulations)
-            num_sim_power += .25
-            MDP_simulations = int(np.round(np.e**num_sim_power))
         if next_sub==29 and num_a==1:
             MDP_simulations = 1408
             num_sim_power = np.log(MDP_simulations)
@@ -126,8 +124,16 @@ while len(chosen_sub_list)<3:
         if next_sub==29 and num_a==4:
             MDP_simulations = 2981
             num_sim_power = np.log(MDP_simulations)
+        if next_sub==29 and num_a==5:
+            MDP_simulations = 17155
+            num_sim_power = np.log(MDP_simulations)
+            num_sim_power += .25
+            MDP_simulations = int(np.round(np.e**num_sim_power))
 
-        while MDP_simulations < 30000:
+        end_sim = 30000
+        if num_a < 4:
+            end_sim = 10000
+        while MDP_simulations < end_sim:
 
             for sub in range(minsub, maxsub+1):
                 found = False
@@ -148,11 +154,13 @@ while len(chosen_sub_list)<3:
                 # for env in range(0, 1):
                     for con in range(0, len(control)):
                     # for con in range(0, 1):
-                        # if MDP_simulations == 3828:
-                        #     if env==0 and con==0:
-                        #         continue
-                        #     if env==0 and con==1:
-                        #         continue
+
+                        # if sub==1:
+                        #     if MDP_simulations == 17176:
+                        #         if env==0:
+                        #             continue
+                        #         elif con==0 or con==1:
+                        #             continue
                         trialInfo = subID + '_' + control[con] + '_' + environments[env]
                         print(trialInfo)
 
