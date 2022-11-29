@@ -17,6 +17,8 @@ class trial_data:
 
     def __init__(self, parent_dir, sub, con, env, print=False):
         self.print = print
+        self.game_score_unofficial = 3*8
+        self.game_time_score_change = 0
 
         # Read data files
         if sub < 10:
@@ -32,7 +34,7 @@ class trial_data:
         try:
             self.player_data = pd.read_csv(DIR+'player.csv')
             self.treasure_data = pd.read_csv(DIR+'treasure.csv')
-            self.objects_data = pd.read_csv(DIR+'objects.csv')
+            # self.objects_data = pd.read_csv(DIR+'objects.csv')
             self.adv0_data = pd.read_csv(DIR+'adv0.csv')
             self.adv1_data = pd.read_csv(DIR+'adv1.csv')
             self.adv2_data = pd.read_csv(DIR+'adv2.csv')
@@ -149,8 +151,13 @@ class trial_data:
             data_time = self.treasure_data['Time'].iat[self.treasure_row+1]
             if data_time <= time: # only update if there are rows timestamped in the next second
                 self.treasure_row += 1
+                treas_prex_x = self.state.treasure.x
+                treas_prex_y = self.state.treasure.y
                 self.state.treasure.x = self.treasure_data['x'].iat[self.treasure_row]
                 self.state.treasure.y = self.treasure_data['y'].iat[self.treasure_row]
+                if self.state.treasure.x!=treas_prex_x and self.state.treasure.y!=treas_prex_y:
+                    self.game_score_unofficial += 1
+                    self.game_time_score_change = time
                 step_time = False
 
             # Make list of found objects
@@ -203,6 +210,8 @@ class trial_data:
                             print('\nAdversary '+str(adv_num)+' stops chasing the player.')
                         adv.is_chasing = False
                         adv.chase = 0
+                        self.game_score_unofficial -= 3
+                        self.game_time_score_change = time
                     self.adv_prev_position_5sec[adv_num] = copy.deepcopy(self.state.adversaries[adv_num].pos)
 
                 # If chasing, update chasing parameter determining how many squares the adversary has chased the player for

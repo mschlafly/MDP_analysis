@@ -8,7 +8,7 @@ import csv
 
 def run_MDP(current_state,MDP_simulations,num_player_actions,MDP_reward_model):
     # Initialize and fill the MDP, then update rewards using Bellman equation
-    MDP_i = MDP(current_state,num_player_actions,MDP_reward_model)
+    MDP_i = MDP(copy.deepcopy(current_state),num_player_actions,MDP_reward_model)
     MDP_i.populate_tree_parallelized(MDP_simulations)
     MDP_i.update_value_tree()
     next_action_reward = MDP_i.values[:4,0]
@@ -98,7 +98,7 @@ def infomativeness_of_observations(current_state,observations,MDP_simulations,
     for obs in observations:
         if obs[2]==0.5:
             obs_include.append(obs)
-            break
+            # break
 
 
     if len(obs_include)!=0:
@@ -158,10 +158,11 @@ def infomativeness_of_observations(current_state,observations,MDP_simulations,
             with open(file_cum, 'a') as csvfile:
                 writer = csv.writer(csvfile, delimiter=',')
                 writer.writerow(row_start + row)
+            print('Only one observation', i_obs, obs_include)
 
         else:
             # How useful were all observations cummlatively
-
+            print('Cummulative update')
             # Update State with new info for next iteration
             current_state.update_state_with_observations(obs_include)
             # done_bool, state_all_obs = update_current_state_with_data(current_state.game_time_data,current_state,state_all_obs,obs_include,1,True)

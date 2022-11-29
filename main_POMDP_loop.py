@@ -25,7 +25,7 @@ def create_csv(filePath, columns):
         writer = csv.writer(csvFile, delimiter=',')
         writer.writerow(columns)
 
-file = "raw_data/raw_data_POMDP_parameters_try.csv"
+file = "raw_data/raw_data_POMDP_parameters_13.csv"
 columns = ['Subject', 'Control', 'Complexity', 'Num_A', 'Num_sim', 'Intersection_time', 'Regret']
 create_csv(file, columns)
 
@@ -76,22 +76,25 @@ while len(chosen_sub_list)<3:
             continue
     if found:
         continue
-    next_sub = 1
+    # next_sub = 13
     print('Selected Subject '+str(next_sub)+' for analysis')
     chosen_sub_list.append(next_sub)
 
     intersection_time = np.random.randint(0,60*3,(2,5))
-    intersection_time = np.array([[ 43, 161,  68, 150, 153],[ 53, 128,  59, 113,  31]])
+
+    # intersection_time = np.array([[101,  53,   4,  41 ,162],[123 ,130  ,56 ,132 , 74]])
+    intersection_time = np.array([[ 52 ,101 , 90 ,174 ,164],[ 19, 149 , 77 , 84 , 56]]) #13
     print(intersection_time)
 
     for num_a in [6,5,4,3,2,1]:
+    # for num_a in [6,5]:
 
         num_sim_power = 0
         num_sims = 1
         minsub = chosen_sub_list[-1]
         maxsub = chosen_sub_list[-1]
 
-        end_sim = 30000
+        end_sim = 15000
         if num_a < 4:
             end_sim = 10000
         while num_sims < end_sim:
@@ -169,7 +172,7 @@ while len(chosen_sub_list)<3:
                             best_action_dir = np.argmax(next_action_reward)
 
                             row = [subID, control[con], environments[env],
-                                    num_a, num_sims, trial_time_current_iter, regret_i]
+                                    num_a, num_sims, trial_time_current_iter, (regret_i/max_regret_possible)]
                             with open(file, 'a') as csvfile:
                                 writer = csv.writer(csvfile, delimiter=',')
                                 writer.writerow(row)
