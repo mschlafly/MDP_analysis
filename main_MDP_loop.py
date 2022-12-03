@@ -14,14 +14,8 @@ import time
 
 minsub = 23
 maxsub = 42
-num_actions = 8
-# 2a -- 1000simulations
-# 3a -- 2000simulations
-# 4a -- 4000simulations
-# 6a -- 20000simulations
-# MDP_simulations = 4000
-MDP_simulations = 5000
-# MDP_simulations = 2000
+num_actions = 6
+MDP_simulations = 10000
 include_treasure = True
 
 MDP_reward_model = 'max'
@@ -41,9 +35,9 @@ if loop:
     columns = ['Subject', 'Control', 'Complexity', 'Num_A', 'Num_sim', 'Regret_cum']
     # create_csv(file, columns)
 else:
-    file = "raw_data/raw_data_MDP_8a_5000s.csv"
+    file = "raw_data/raw_data_MDP_6a_10000s.csv"
     columns = ['Subject', 'Control', 'Complexity', 'MDP_r']
-    # create_csv(file, columns)
+    create_csv(file, columns)
 
 
 file_missingbags = "raw_data/unparsable_bags_playback.csv"
@@ -102,33 +96,6 @@ while len(chosen_sub_list)<3:
             MDP_simulations = 1
             minsub = chosen_sub_list[-1]
             maxsub = chosen_sub_list[-1]
-        if next_sub==1 and num_a==1:
-            MDP_simulations = 1097
-            num_sim_power = np.log(MDP_simulations)
-        if next_sub==1 and num_a==3:
-            MDP_simulations = 4915
-            num_sim_power = np.log(MDP_simulations)
-            num_sim_power += .25
-            MDP_simulations = int(np.round(np.e**num_sim_power))
-        if next_sub==1 and num_a==5:
-            MDP_simulations = 17176
-            num_sim_power = np.log(MDP_simulations)
-        if next_sub==29 and num_a==1:
-            MDP_simulations = 1408
-            num_sim_power = np.log(MDP_simulations)
-        if next_sub==29 and num_a==2:
-            MDP_simulations = 2981
-            num_sim_power = np.log(MDP_simulations)
-            num_sim_power += .25
-            MDP_simulations = int(np.round(np.e**num_sim_power))
-        if next_sub==29 and num_a==4:
-            MDP_simulations = 2981
-            num_sim_power = np.log(MDP_simulations)
-        if next_sub==29 and num_a==5:
-            MDP_simulations = 17155
-            num_sim_power = np.log(MDP_simulations)
-            num_sim_power += .25
-            MDP_simulations = int(np.round(np.e**num_sim_power))
 
         end_sim = 30000
         if num_a < 4:
