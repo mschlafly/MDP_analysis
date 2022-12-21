@@ -4,12 +4,15 @@ This repo determines the optimal agent's actions based on played back experiment
 
 ## Analyses Performed
 
-main.py can perform 4 analyses:
+main.py can perform 3 analyses:
 
 * Validation that model correctly captures the probability of a lost life. This is the default setting---all information is available to the optimal agent and the Hamilton-Jacobi-Bellman equation uses the argmax function. For the following two analyses, the Hamilton-Jacobi-Bellman equation uses the mean function to determine expected reward.
 * Player decision analysis where the player's decisions are compared to the optimal agent. Set POMDP_d=True.
 * Analysis of the utility of observations to the optimal agent. Set POMDP_obs=True.
-* Obtains the number of person observations by drones
+
+This repo performs two other analyses included in the paper
+* n_observations.py stores the number of person observations by drones
+* parameter_selection_loop.py stores the regret metric for increasing numbers of actions and simulations. This is used to determine the parameters for the model convergence
 
 ## System Requirements
 
@@ -33,3 +36,4 @@ Helper Functions
 - plot_branching_intersections.py generates Figure 1B from the associated paper using human trial data
 - path_figure.py is used to generate the cost of each action for Figure 1A of the paper
 - player_path_plot.py plots the path of the player relative to an observed or unobserved adversary for the supplementary material
+- plot_convergence.py plots the MDP and POMDP data parameter data to determine the number of actions/simulations to reach convergence

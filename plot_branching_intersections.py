@@ -18,13 +18,16 @@ maxsub = 29
 env = 0
 con = 4
 num_actions = 6
+# num_actions = 3
 num_sims = 30000
+# num_sims = 10000
 num_decisions_in_plot = 6
-num_paths_in_plot = 100
+num_paths_in_plot = 50
 num_decisions_skip = 4
 POMDP_d = True
+sensory_augmentation = False
 
-y_lim_min = -8#-4
+y_lim_min = -5#-4
 y_lim_max = .5#1.5
 
 include_treasure = True
@@ -60,9 +63,9 @@ def curved_plot(x1,x2,y1,y2):
 ###############################################################################
 # Set up figure
 ###############################################################################
-figure_size = (6,3)
+figure_size = (6,2.25)
 fig, ax = plt.subplots(figsize=figure_size, dpi=300)
-linewidth = 1
+linewidth = 1.5
 
 ###############################################################################
 # Main script
@@ -147,8 +150,10 @@ for sub in range(minsub, maxsub+1):
             if obs[2]>.75:
                 observation_sight.append(obs)
 
-        # _, current_state_partial_info = update_current_state_with_data(trial_time,data.state,current_state_partial_info,observations,sub,True)
-        _, current_state_partial_info = update_current_state_with_data(trial_time,data.state,current_state_partial_info,observation_sight,sub,True)
+        if sensory_augmentation:
+            _, current_state_partial_info = update_current_state_with_data(trial_time,data.state,current_state_partial_info,observations,sub,True)
+        else:
+            _, current_state_partial_info = update_current_state_with_data(trial_time,data.state,current_state_partial_info,observation_sight,sub,True)
         # _, current_state_all_state_info = update_current_state_with_data(trial_time,data.state,current_state_all_state_info,observations,sub,False)
 
         if decision < num_decisions_skip:
@@ -159,15 +164,18 @@ for sub in range(minsub, maxsub+1):
         # Plot spotted adversaries
         # print(observations)
         # [game_time, agent_id, probability_observed, pos_x, pos_y, action, chasing_bool, ignore]
-        for obs in observations:
-            # x_pos = decision + (obs[0]-trial_time_current_iter)/(trial_time-trial_time_current_iter)
-            x_pos = obs[0]
-            if obs[2]>0.6:
-                ax.plot([x_pos,x_pos],[y_lim_min,y_lim_max],linestyle='-',
-                color='#ffe680ff', linewidth=linewidth)
-            else:
-                ax.plot([x_pos,x_pos],[y_lim_min,y_lim_max],linestyle='--',
-                color='#ffe680ff', linewidth=linewidth)
+        if sensory_augmentation:
+            for obs in observations:
+                # x_pos = decision + (obs[0]-trial_time_current_iter)/(trial_time-trial_time_current_iter)
+                x_pos = obs[0]
+                if obs[2]>0.6:
+                    skip = True
+                    # ax.plot([x_pos,x_pos],[y_lim_min,y_lim_max],linestyle='-',
+                    # color='#ffe680ff', linewidth=linewidth)
+                else:
+                    # ax.plot([x_pos,x_pos],[y_lim_min,y_lim_max],linestyle='--',
+                    ax.plot([x_pos,x_pos],[y_lim_min,y_lim_max],linestyle='-',
+                    color='#ffe680ff', linewidth=linewidth)
 
         # # Plot game score
         # if data.game_score_unofficial!=game_score_current:
@@ -310,8 +318,13 @@ for label in (ax.get_xticklabels()):
     label.set_fontsize(8)
 for label in (ax.get_yticklabels()):
     label.set_fontsize(8)
+# xmin, xmax = ax.get_xlim()
+# ax.set_xlim([xmin-2,xmax+2])
 ax.set_ylim([y_lim_min,y_lim_max])
-fig.savefig('Plots/possible_paths_sub'+subID+'_con'+str(con)+'_withoutsensoryaugmentation.pdf')
+if sensory_augmentation:
+    fig.savefig('Plots/possible_paths_sub'+subID+'_con'+str(con)+'_withsensoryaugmentation.pdf')
+else:
+    fig.savefig('Plots/possible_paths_sub'+subID+'_con'+str(con)+'_withoutsensoryaugmentation.pdf')
 # fig.savefig('Plots/possible_paths_sub'+subID+'_con'+str(con)+'.pdf')
 
 plt.show()

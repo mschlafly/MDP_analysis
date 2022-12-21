@@ -12,7 +12,6 @@ class environment:
         self.building_array = self.populate_building_array(env)
 
         # Define intersection locations and numbers in simplified grid where
-            # x, y = int(np.floor(x/2)) , int(np.floor(y/2))
         self.intersections = np.ones((15,15),dtype=int)*-1
         in_x = [1,3,6,8,11,13,
                             1,3,6,8,11,13,

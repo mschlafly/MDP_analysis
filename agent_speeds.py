@@ -1,10 +1,10 @@
+# This code finds the speed of the adversaries to report in paper
 
 import numpy as np
 import pandas as pd
 
 minsub = 1
 maxsub = 42
-MDP_simulations = 300
 
 # Specify specific subjects to skip here.
 skipped_subjects = []
@@ -34,7 +34,7 @@ for sub in range(minsub, maxsub+1):
             DIR = readDataDIR+'Sub'+subID+'/'+trialInfo+'_'
 
             try:
-                data = pd.read_csv(DIR+'adv2.csv')
+                data = pd.read_csv(DIR+'player.csv')
             except:
                 print('Unable to read data')
                 break

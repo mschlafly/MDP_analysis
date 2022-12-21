@@ -247,17 +247,17 @@ class trial_data:
 
             # Check to see if the player has seen any of the adversaries to add new observation
             for adv in self.state.adversaries:
-                if adv.include:
-                    isfound = self.state.environment.check_sight(self.state.player, adv.pos, 'data',
-                            agent_prev_pos=player_prev_position_i)
-                    if isfound:
-                        vec_dir = [adv.pos.x-self.adv_prev_position[adv.adv_num].x,adv.pos.y-self.adv_prev_position[adv.adv_num].y]
-                        zero_vec = [0, 1]
-                        angle = angle_between(vec_dir, zero_vec) # clockwise=positive for us
-                        adv_action = self.theta_to_action(np.rad2deg(angle))
-                        obs_i = [time, adv.adv_num, 1, adv.pos.x, adv.pos.y,
-                                adv_action, adv.is_chasing, True]
-                        observations.append(obs_i)
+                # if adv.include:
+                isfound = self.state.environment.check_sight(self.state.player, adv.pos, 'data',
+                        agent_prev_pos=player_prev_position_i)
+                if isfound:
+                    vec_dir = [adv.pos.x-self.adv_prev_position[adv.adv_num].x,adv.pos.y-self.adv_prev_position[adv.adv_num].y]
+                    zero_vec = [0, 1]
+                    angle = angle_between(vec_dir, zero_vec) # clockwise=positive for us
+                    adv_action = self.theta_to_action(np.rad2deg(angle))
+                    obs_i = [time, adv.adv_num, 1, adv.pos.x, adv.pos.y,
+                            adv_action, adv.is_chasing, True]
+                    observations.append(obs_i)
 
             # Check if the player is in a new intersection
             in_intersection, intersection_ind = self.state.environment.check_person_in_intersection(self.state.player)

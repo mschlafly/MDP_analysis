@@ -32,33 +32,38 @@ class state:
 
     # This function simulates the game for a particular player action until the
     # player has reached the next intersection
-    def simulate(self, action):
+    def simulate(self, action, firstsim=False):
         # action indicates the turn the player is taking at the current intersection
 
         # Move forward current observations to simulation time
-        if self.partially_observable:
+        if firstsim:
             # Loop through adversaries in adversary_list, bringing them to current time
             for adv in self.adversaries:
-                # print([adv.include_probability,1-adv.include_probability])
-                # lspaoisjfp
-                include_bool = np.random.choice([1,0],p=[adv.include_probability,1-adv.include_probability])
-                adv.include = include_bool
-                # adv.include = True
-                # print('include_bool',include_bool)
-                if include_bool:
-                    # print(adv.time_observed,adv.sim_time,self.game_time_data)
-                    adv.sim_time += self.adversary_moving_rate
-                    while adv.sim_time<self.game_time_data:
-                        adv.update(self.environment,self.player)
-                        adv.sim_time += self.adversary_moving_rate
+                if self.partially_observable:
+                    # print([adv.include_probability,1-adv.include_probability])
+                    # lspaoisjfp
 
-                    if (adv.sim_time-adv.time_observed)>self.time_include_adv:
-                        # print('setting include to false',adv.adv_num)
-                        # print(adv.time_observed,adv.sim_time)
-                        adv.include = False
-
+                    include_bool = np.random.choice([1,0],p=[adv.include_probability,1-adv.include_probability])
+                    adv.include = include_bool
+                    # adv.include = True
+                    # print('include_bool',include_bool)
+                    if include_bool:
                         # print(adv.time_observed,adv.sim_time,self.game_time_data)
-                    adv.caught_player = 0 # just in case a life was lost
+                        adv.sim_time += self.adversary_moving_rate
+                        while adv.sim_time<self.game_time_data:
+                            adv.update(self.environment,self.player)
+                            adv.sim_time += self.adversary_moving_rate
+
+                        if (adv.sim_time-adv.time_observed)>self.time_include_adv:
+                            # print('setting include to false',adv.adv_num)
+                            # print(adv.time_observed,adv.sim_time)
+                            adv.include = False
+
+                            # print(adv.time_observed,adv.sim_time,self.game_time_data)
+
+                else:
+                    adv.include = True # just to make sure all adversaries are included at the beginning
+                adv.caught_player = 0 # just in case a life was lost
 
         in_intersection = False
         while not in_intersection:
@@ -120,7 +125,7 @@ class state:
         lost_lives = 0
         for adv in self.adversaries:
             lost_lives += adv.caught_player
-        return lost_lives, dist_to_treasure, isfound
+        return lost_lives, dist_to_treasure
 
     def update_state_with_observations(self,observations):
         # observations is a list of individual observations in format:
