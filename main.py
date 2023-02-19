@@ -12,12 +12,12 @@ import time
 # Parameters
 ###############################################################################
 
-minsub = 36
+minsub = 1
 maxsub = 42
 num_actions = 6
 num_sims = 10000
 POMDP_d = False  # Boolean for whether to compare the player and optimal agent's decisions
-POMDP_obs = False # Boolean for whether to to determine how helpful each observation is
+POMDP_obs = True # Boolean for whether to to determine how helpful each observation is
 save_data = True
 include_treasure = True
 
@@ -38,16 +38,16 @@ def create_csv(filePath, columns):
 if POMDP_d:
     file_POMDP_d = "raw_data/raw_data_POMDP_d_"+str(num_actions)+'a_'+str(num_sims)+'s.csv'
     columns = ['Subject', 'Control', 'Complexity','Expertise','Intersection_time','Regret','Maximum_Regret']
-    create_csv(file_POMDP_d, columns)
+    # create_csv(file_POMDP_d, columns)
 if POMDP_obs:
     file_POMDP_obs_i = "raw_data/raw_data_POMDP_obs_i_"+str(num_actions)+'a_'+str(num_sims)+'s.csv'
     file_POMDP_obs_cum = "raw_data/raw_data_POMDP_obs_cum_"+str(num_actions)+'a_'+str(num_sims)+'s.csv'
     columns = ['Subject', 'Control', 'Complexity','Expertise','Intersection_time','P_switch',
                 'norm_mean','norm_bestpath','norm_userpath']
-    create_csv(file_POMDP_obs_i, columns)
+    # create_csv(file_POMDP_obs_i, columns)
     columns = ['Subject', 'Control', 'Complexity','Expertise','Intersection_time','P_switch_cum',
                 'norm_cum','norm_bestpath_cum','norm_userpath_cum']
-    create_csv(file_POMDP_obs_cum, columns)
+    # create_csv(file_POMDP_obs_cum, columns)
 if not (POMDP_d or POMDP_obs):
     file = "raw_data/raw_data_MDP_"+str(num_actions)+'a_'+str(num_sims)+'s.csv'
     columns = ['Subject', 'Control', 'Complexity', 'MDP_r']
@@ -64,11 +64,14 @@ create_csv(file_missingbags, columns)
 
 # Specify specific subjects to skip here.
 # incomplete subjects and novices
-skipped_subjects = [2, 3, 4, 5, 6, 7, 10, 12, 16, 23, 30, 31, 33, 38, 39, 42]
+# skipped_subjects = [2, 3, 4, 5, 6, 7, 10, 12, 16, 23, 30, 31, 33, 38, 39, 42]
+
+# # All subjects
+# skipped_subjects = [2, 3, 4, 5, 6, 10, 12, 16]
 
 # # incomplete subjects and experts
-# skipped_subjects = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
-#         20, 21, 22, 24, 25, 26, 27, 28, 29, 32, 34, 35, 36, 37, 40, 41]
+skipped_subjects = [1, 2, 3, 4, 5, 6, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19,
+        20, 21, 22, 24, 25, 26, 27, 28, 29, 32, 34, 35, 36, 37, 40, 41]
 
 environments = ['low', 'high']
 control = ['none', 'waypoint',
@@ -109,7 +112,7 @@ for sub in range(minsub, maxsub+1):
     for env in range(0, len(environments)):
         for con in range(0, len(control)):
 
-            if sub==36:
+            if sub==13:
                 if env==0:
                     continue
                 else:
